@@ -4,8 +4,10 @@ import { supabase } from "../lib/supabase";
 import { toast, Toaster } from "sonner";
 import { MdErrorOutline } from "react-icons/md";
 import { CiCircleCheck } from "react-icons/ci";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -37,6 +39,7 @@ function Login() {
         toast.success("Login successful", {
           icon: <CiCircleCheck size={20} color="#01BF5B" />,
         });
+        navigate("/overview");
       }
     } catch (err) {
       toast.error("An enexpected error occured");

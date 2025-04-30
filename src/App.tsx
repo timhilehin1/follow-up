@@ -14,7 +14,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route
-            path="/dashboard"
+            path="/overview"
             element={
               <ProtectedRoute>
                 <Dashboard />
@@ -37,7 +37,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/dashboard" />} />
+          <Route path="*" element={<Navigate to="/overview" />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
