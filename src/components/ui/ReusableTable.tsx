@@ -34,10 +34,14 @@ function ReusableTable<TData>({
       globalFilter: searchTerm,
       pagination: { pageIndex, pageSize },
     },
-    onPaginationChange: () => {
-      const newState = { pageIndex, pageSize };
+    onPaginationChange: (updater) => {
+      const newState =
+        typeof updater === "function"
+          ? updater({ pageIndex, pageSize })
+          : updater;
       onPaginationChange(newState.pageIndex, newState.pageSize);
     },
+
     manualPagination: true,
     pageCount: Math.ceil(totalRows / pageSize),
     getCoreRowModel: getCoreRowModel(),
