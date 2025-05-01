@@ -1,12 +1,6 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./dialog";
+
+
 
 interface ReusableModalProps {
   open: boolean;
@@ -25,7 +19,7 @@ export default function ReusableModal({
   children,
 }: ReusableModalProps) {
   return (
-    <Dialog className="" open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[85%] sm:w-[85%] my-8  max-w-md md:max-w-lg lg:max-w-xl mx-auto bg-white text-[#44444B] dark:bg-[#242529] dark:text-white">
         <DialogHeader className="text-left mb-4">
           <DialogTitle className="mb-2 capitalize">{title}</DialogTitle>

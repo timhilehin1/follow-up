@@ -138,7 +138,7 @@ function MemberManagement() {
       )}`;
 
       // Map newMember object to match database schema field names
-      const { data, error } = await supabase.from("members").insert({
+      const { error } = await supabase.from("members").insert({
         full_name: newMember.fullName,
         gender: newMember.gender,
         email: newMember.email,
@@ -187,7 +187,7 @@ function MemberManagement() {
 
   async function fetchAdmins() {
     try {
-      const { data, error } = await supabase.from("admins").select("*");
+      const { data } = await supabase.from("admins").select("*");
       console.log(data);
       setAdmins(data || []);
     } catch (error) {
@@ -353,7 +353,7 @@ function MemberManagement() {
     },
     {
       accessorKey: "note",
-      header: () => <span className="hidden md:table-cell">Note</span>,
+      header: () => <span className="hidden md:table-cell">Last note</span>,
       cell: ({ row }) => {
         const note = row.original.notes;
         return (
@@ -420,11 +420,11 @@ function MemberManagement() {
   return (
     <Layout>
       <Toaster position="top-right" />
-      <section>
+      <section className="">
         <div className="flex flex-col items-start gap-4 lg:flex-row lg:items-center justify-between mb-16">
           <div className="">
             <p className="text-2xl mb-2 font-semibold">Members</p>
-            <p>Follow up on your family members here👋</p>
+            <p>Follow up on your MAP members here👋</p>
           </div>
           <button
             onClick={openAddMemberModal}

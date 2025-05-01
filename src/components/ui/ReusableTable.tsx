@@ -5,7 +5,8 @@ import {
   ColumnDef,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { useState } from "react";
+import { IoIosArrowBack } from "react-icons/io";
+import { GrFormNext } from "react-icons/gr";
 
 type ReusableTableProps<TData> = {
   data: TData[];
@@ -33,8 +34,8 @@ function ReusableTable<TData>({
       globalFilter: searchTerm,
       pagination: { pageIndex, pageSize },
     },
-    onPaginationChange: (updater) => {
-      const newState = updater({ pageIndex, pageSize });
+    onPaginationChange: () => {
+      const newState = { pageIndex, pageSize };
       onPaginationChange(newState.pageIndex, newState.pageSize);
     },
     manualPagination: true,
@@ -107,7 +108,7 @@ function ReusableTable<TData>({
             disabled={!table.getCanPreviousPage()}
             className="p-2 bg-[#0053A6] text-white  rounded disabled:opacity-50 cursor-pointer"
           >
-            Previous
+            <IoIosArrowBack />
           </button>
 
           <span>
@@ -120,7 +121,7 @@ function ReusableTable<TData>({
             disabled={!table.getCanNextPage()}
             className="p-2 bg-[#0053A6] text-white rounded disabled:opacity-50 cursor-pointer"
           >
-            Next
+            <GrFormNext />
           </button>
         </div>
       )}

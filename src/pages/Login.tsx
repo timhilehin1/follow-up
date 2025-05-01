@@ -53,7 +53,7 @@ function Login() {
       <Toaster position="top-right" />
       <header className=" flex items-center justify-between h-15 text-black">
         <img src="/images/logo.png" className="w-12 h-12 mb-2" alt="logo" />
-        <span className="font-semibold">Admin</span>
+        <span className="font-semibold">CHEMIST MAP</span>
       </header>
 
       <section className="flex items-center justify-center h-[calc(100vh-3.75rem)] px-6">

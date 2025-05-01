@@ -1,7 +1,7 @@
 
 import Layout from "../components/layout/Layout";
 
-function AdminManagement() {
+function Communications() {
   return (
     <Layout>
       <div className="flex justify-center items-center  h-[calc(100vh-56px)]">
@@ -11,4 +11,4 @@ function AdminManagement() {
   );
 }
 
-export default AdminManagement;
+export default Communications;

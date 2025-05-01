@@ -1,25 +1,41 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaRegMoon } from "react-icons/fa6";
-import { CiSearch } from "react-icons/ci";
 import { FaRegCircleUser } from "react-icons/fa6";
 import { RiMenu2Line } from "react-icons/ri";
 import { IoMdClose } from "react-icons/io";
 import { IoIosLogOut } from "react-icons/io";
 import { MdOutlineLightMode } from "react-icons/md";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
 
 function Layout({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [theme, setTheme] = useState("");
-
   useEffect(() => {
-    // Apply dark class to the HTML element
-    if (theme === "dark") {
+    //for persistence
+    const storedTheme = localStorage.getItem("theme") || "";
+    setTheme(storedTheme);
+
+    if (storedTheme === "dark") {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
-  }, [theme]);
+  }, []);
+
+  const toggleTheme = () => {
+    // for switching
+    const newTheme = theme === "dark" ? "" : "dark";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
 
   const getNavLinkClass = ({ isActive }: { isActive: any }) =>
     isActive
@@ -30,12 +46,18 @@ function Layout({ children }: { children: React.ReactNode }) {
     setShowMobileSidebar(!showMobileSidebar);
   };
 
-  const handleLogout = () => {
-    // Logout functionality here
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error signing out:", error.message);
+    } else {
+      navigate("/login");
+      console.log("Successfully signed out");
+    }
   };
 
   return (
-    <section className={`layout ${theme} relative`}>
+    <section className={`layout ${theme} relative h-full`}>
       {/* Desktop Navigation */}
       <nav
         className={`h-14 border border-gray-300 dark:border-gray-600  fixed inset-y-0 start-0 w-full max-w-[2000px] mx-auto z-[500] py-4 px-6 bg-white text-[#44444B]  dark:bg-[#242529] dark:text-white ${
@@ -46,7 +68,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         <div className=" w-[220px] ">
           <div className="gap-2 items-center hidden lg:flex">
             <img src="/images/logo.png" className="w-6 h-6" alt="logo" />
-            <p className="font-bold">Follow-Up</p>
+            <p className="font-bold">CHEMIST MAP</p>
           </div>
           <RiMenu2Line
             onClick={handleToggleSidebar}
@@ -61,9 +83,9 @@ function Layout({ children }: { children: React.ReactNode }) {
           </div> */}
           <div className="border border-gray-300 dark:border-gray-600 p-1.5 rounded-md cursor-pointer">
             {theme === "dark" ? (
-              <MdOutlineLightMode onClick={() => setTheme("")} size={24} />
+              <MdOutlineLightMode onClick={toggleTheme} size={24} />
             ) : (
-              <FaRegMoon onClick={() => setTheme("dark")} size={24} />
+              <FaRegMoon onClick={toggleTheme} size={24} />
             )}
           </div>
           <div className="border border-gray-300 dark:border-gray-600 p-1.5 rounded-md cursor-pointer">
@@ -73,7 +95,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* Desktop Sidebar */}
-      <aside className="border border-gray-300 dark:border-gray-600 px-6 py-4 hidden lg:flex flex-col fixed inset-y-0 start-0 h-dvh w-[220px] bg-white dark:bg-[#242529] dark:text-white mt-14">
+      <aside className="border border-gray-300 dark:border-gray-600 px-6 py-4 hidden lg:flex flex-col fixed inset-y-0 start-0 h-dvh w-[220px] bg-white text-[#44444B] dark:bg-[#242529] dark:text-white mt-14">
         <div className="flex flex-col gap-6 p-2">
           <NavLink to="/overview" className={getNavLinkClass} end>
             Overview
@@ -88,9 +110,12 @@ function Layout({ children }: { children: React.ReactNode }) {
           <NavLink to="/comms" className={getNavLinkClass} end>
             Communications{" "}
           </NavLink>
-          <NavLink to="/login" className={getNavLinkClass} end>
+          <ul
+            className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded"
+            onClick={handleLogout}
+          >
             Logout{" "}
-          </NavLink>
+          </ul>
         </div>
       </aside>
 
@@ -139,7 +164,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main
-        className="main ml-0 lg:ml-[220px] mt-14 p-4 h-full  bg-white text-[#44444B] dark:bg-[#242529]
+        className="main ml-0 lg:ml-[220px] mt-14 p-4 min-h-dvh  bg-white text-[#44444B] dark:bg-[#242529]
        dark:text-white  "
       >
         {children}

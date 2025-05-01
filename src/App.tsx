@@ -1,4 +1,4 @@
-import { useState } from "react";
+
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Login from "./pages/Login";
@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import MemberManagement from "./pages/MemberManagement";
 import AdminManagement from "./pages/AdminManagement";
+import NewMember from "./pages/NewMember";
 
 function App() {
   return (
@@ -37,6 +38,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/comms"
+            element={
+              <ProtectedRoute>
+                <AdminManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/new" element={<NewMember />} />
           <Route path="*" element={<Navigate to="/overview" />} />
         </Routes>
       </AuthProvider>
