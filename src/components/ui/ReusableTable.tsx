@@ -53,58 +53,63 @@ function ReusableTable<TData>({
   });
 
   return (
-    <div className="overflow-x-auto ">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 mb-4">
-        <thead className="bg-gray-50 dark:bg-gray-800">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400"
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-          {table.getRowModel().rows.length === 0 ? (
-            <tr>
-              <td
-                colSpan={table.getAllColumns().length}
-                className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
-              >
-                No results found.
-              </td>
-            </tr>
-          ) : (
-            table.getRowModel().rows.map((row, idx) => (
-              <tr
-                key={row.id}
-                className={
-                  idx % 2 === 0
-                    ? "bg-white dark:bg-gray-900"
-                    : "bg-gray-50 dark:bg-gray-800"
-                }
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300"
+    <div>
+      <div className="overflow-x-auto ">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 mb-4">
+          <thead className="bg-gray-50 dark:bg-gray-800">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400"
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </th>
                 ))}
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ))}
+          </thead>
+          <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+            {table.getRowModel().rows.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={table.getAllColumns().length}
+                  className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                >
+                  No results found.
+                </td>
+              </tr>
+            ) : (
+              table.getRowModel().rows.map((row, idx) => (
+                <tr
+                  key={row.id}
+                  className={
+                    idx % 2 === 0
+                      ? "bg-white dark:bg-gray-900"
+                      : "bg-gray-50 dark:bg-gray-800"
+                  }
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300"
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       {table.getRowModel().rows.length !== 0 && (
         <div className="flex gap-4 items-center py-4">
           <button

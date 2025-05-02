@@ -420,7 +420,7 @@ function MemberManagement() {
   return (
     <Layout>
       <Toaster position="top-right" />
-      <section className="">
+      <section className="p-2">
         <div className="flex flex-col items-start gap-4 lg:flex-row lg:items-center justify-between mb-16">
           <div className="">
             <p className="text-2xl mb-2 font-semibold">Members</p>
@@ -598,9 +598,9 @@ function MemberManagement() {
             open={isAddMemberModalOpen}
             onOpenChange={setIsAddMemberModalOpen}
             title="Add New Member"
-            description="Fill in the member's details below. Required fields are marked with *."
+            description="Fill in the member's details below. Required fields are marked with *"
           >
-            <form onSubmit={handleAddMember} className="px-4">
+            <form onSubmit={handleAddMember} className="">
               {/* Full Name */}
               <div className="flex flex-col gap-4 mb-4">
                 <label className="font-semibold" htmlFor="fullName">
