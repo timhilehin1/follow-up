@@ -188,7 +188,7 @@ function MemberManagement() {
   async function fetchAdmins() {
     try {
       const { data } = await supabase.from("admins").select("*");
-      console.log(data);
+      // console.log(data);
       setAdmins(data || []);
     } catch (error) {
       console.warn("Error fetching admins", error);
@@ -224,7 +224,7 @@ function MemberManagement() {
         icon: <MdErrorOutline size={20} color="#FF3B30" />,
       });
     } else {
-      console.log(data);
+      // console.log(data);
       setMembers(data || []);
       setTotalRows(count || 0);
     }
