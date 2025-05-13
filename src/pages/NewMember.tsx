@@ -40,7 +40,7 @@ export default function NewMember() {
 
   const [newMember, setNewMember] = useState(defaultMemberState);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(true);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   async function handleAddMember(e: React.FormEvent) {
     e.preventDefault();
