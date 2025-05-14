@@ -62,10 +62,12 @@ function MemberManagement() {
   const [day, setDay] = useState("");
   const [month, setMonth] = useState("");
 
-  // Update the useEffect to fetch members when searchTerm changes too
   useEffect(() => {
     fetchMembers(pageIndex, pageSize);
   }, [pageIndex, pageSize, searchTerm, selectedFilterAdmin]);
+  useEffect(() => {
+    setPageIndex(0); // Reset to first page when filters change
+  }, [searchTerm, selectedFilterAdmin]);
   useEffect(() => {
     const debounce = setTimeout(() => {
       setSearchTerm(inputValue);
@@ -201,36 +203,51 @@ function MemberManagement() {
   async function fetchMembers(pageIndex: number, pageSize: number) {
     setLoading(true);
 
-    let query = supabase.from("members").select("*", { count: "exact" });
+    try {
+      // First build the query with the filters
+      let query = supabase.from("members").select("*", { count: "exact" });
 
-    // Apply search term filter if exists
-    if (searchTerm) {
-      query = query.ilike("name", `%${searchTerm}%`);
-    }
+      // Apply search term filter if exists
+      if (searchTerm) {
+        query = query.ilike("full_name", `%${searchTerm}%`);
+      }
 
-    // Apply admin filter if selected
-    if (selectedFilterAdmin) {
-      query = query.eq("admin_id", selectedFilterAdmin);
-    }
+      // Apply admin filter if selected
+      if (selectedFilterAdmin) {
+        query = query.eq("admin_id", selectedFilterAdmin);
+      }
 
-    const { data, error, count } = await query.range(
-      pageIndex * pageSize,
-      (pageIndex + 1) * pageSize - 1
-    ); // Gets all fields and total count
+      // Get data with count
+      const { data, error, count } = await query.range(
+        pageIndex * pageSize,
+        (pageIndex + 1) * pageSize - 1
+      );
 
-    if (error) {
+      if (error) {
+        // Check if this is an offset error
+        if (error.code === "PGRST103" && pageIndex > 0) {
+          // If we're trying to access a page that doesn't exist, go back to page 0
+          setPageIndex(0);
+          return; // This will trigger another fetch with page 0
+        }
+        throw error;
+      }
+
+      // Set members and total rows
+      setMembers(data || []);
+      setTotalRows(count || 0);
+    } catch (error) {
       console.error("Error fetching members:", error);
       toast.error("Error fetching members", {
         icon: <MdErrorOutline size={20} color="#FF3B30" />,
       });
-    } else {
-      // console.log(data);
-      setMembers(data || []);
-      setTotalRows(count || 0);
+      setMembers([]);
+      setTotalRows(0);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
+
   const openAddNoteModal = (member: Member) => {
     setSelectedMember(member);
     setOpen(true);
@@ -923,7 +940,4 @@ function MemberManagement() {
   );
 }
 
-//let writee documentation with the mind that we aare trying  to explain to a group of people
-// tansatck doc is not even bad
-// close button, i need it to be pointer
 export default MemberManagement;
