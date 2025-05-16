@@ -7,6 +7,13 @@ import { IoIosLogOut } from "react-icons/io";
 import { MdOutlineLightMode } from "react-icons/md";
 import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
+import {
+  Handshake,
+  LayoutDashboard,
+  LogOut,
+  ShieldUser,
+  Users,
+} from "lucide-react";
 
 function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -39,8 +46,8 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   const getNavLinkClass = ({ isActive }: { isActive: any }) =>
     isActive
-      ? "cursor-pointer font-bold text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-800 px-2 py-2 rounded"
-      : "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded";
+      ? "cursor-pointer font-bold text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-800 px-2 py-2 rounded flex items-center gap-2 group"
+      : "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded flex items-center gap-2 group";
 
   const handleToggleSidebar = () => {
     setShowMobileSidebar(!showMobileSidebar);
@@ -98,22 +105,33 @@ function Layout({ children }: { children: React.ReactNode }) {
       <aside className="border border-gray-300 dark:border-gray-600 px-6 py-4 hidden lg:flex flex-col fixed inset-y-0 start-0 h-dvh w-[220px] bg-white text-[#44444B] dark:bg-[#242529] dark:text-white mt-14">
         <div className="flex flex-col gap-6 p-2">
           <NavLink to="/overview" className={getNavLinkClass} end>
+            <LayoutDashboard className="group-hover:animate-spin" size={15} />
             Overview
           </NavLink>
 
           <NavLink to="/members" className={getNavLinkClass} end>
+            <Users
+              className="group-hover:motion-safe:animate-bounce"
+              size={15}
+            />
             Members{" "}
           </NavLink>
           <NavLink to="/admins" className={getNavLinkClass} end>
+            <ShieldUser
+              className="group-hover:motion-safe:animate-bounce"
+              size={15}
+            />
             Admins{" "}
           </NavLink>
           <NavLink to="/comms" className={getNavLinkClass} end>
+            <Handshake className="group-hover:animate-bounce" size={15} />
             Communications{" "}
           </NavLink>
           <ul
-            className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded"
+            className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded flex items-center gap-2 group"
             onClick={handleLogout}
           >
+            <LogOut size={15} className="group-hover:animate-bounce" />
             Logout{" "}
           </ul>
         </div>
@@ -148,15 +166,25 @@ function Layout({ children }: { children: React.ReactNode }) {
 
         <ul className="flex flex-col gap-3 text-xl">
           <NavLink className={getNavLinkClass} to="/overview" end>
+            <LayoutDashboard className="group-hover:animate-spin" size={15} />
             Overview
           </NavLink>
           <NavLink className={getNavLinkClass} to="/members" end>
+            <Users
+              className="group-hover:motion-safe:animate-bounce"
+              size={15}
+            />
             Members
           </NavLink>
           <NavLink className={getNavLinkClass} to="/admins" end>
+            <ShieldUser
+              className="group-hover:motion-safe:animate-bounce"
+              size={15}
+            />
             Admins
           </NavLink>
           <NavLink className={getNavLinkClass} to="/comms" end>
+            <Handshake className="group-hover:animate-bounce" size={15} />
             Communications
           </NavLink>
         </ul>
