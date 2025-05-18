@@ -192,7 +192,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main
-        className="main ml-0 lg:ml-[220px] mt-14 p-4 min-h-dvh  bg-white text-[#44444B] dark:bg-[#242529]
+        className="main ml-0 lg:ml-[220px] mt-14 p-2 md:p-4 min-h-dvh  bg-white text-[#44444B] dark:bg-[#242529]
        dark:text-white  "
       >
         {children}
