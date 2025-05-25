@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Login from "./pages/Login";
@@ -7,6 +6,7 @@ import ProtectedRoute from "./pages/ProtectedRoute";
 import MemberManagement from "./pages/MemberManagement";
 import AdminManagement from "./pages/AdminManagement";
 import NewMember from "./pages/NewMember";
+import FollowUpMembers from "./pages/FollowUpMembers";
 
 function App() {
   return (
@@ -23,6 +23,14 @@ function App() {
             }
           />
           <Route
+            path="/members/follow-up"
+            element={
+              <ProtectedRoute>
+                <FollowUpMembers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/members"
             element={
               <ProtectedRoute>
@@ -30,6 +38,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/admins"
             element={

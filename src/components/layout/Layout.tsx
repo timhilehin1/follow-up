@@ -13,11 +13,14 @@ import {
   LogOut,
   ShieldUser,
   Users,
+  ChevronDown,
 } from "lucide-react";
 
 function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [isMembersSubMenuOpen, setIsMembersSubMenuOpen] = useState(false);
+
   const [theme, setTheme] = useState("");
   useEffect(() => {
     //for persistence
@@ -46,9 +49,16 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   const getNavLinkClass = ({ isActive }: { isActive: any }) =>
     isActive
-      ? "cursor-pointer font-bold text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-800 px-2 py-2 rounded flex items-center gap-2 group"
+      ? "cursor-pointer font-bold text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-800 px-2 py-2 rounded flex items-center gap-2 group "
       : "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded flex items-center gap-2 group";
 
+  //special scenario, active class was seeing both routes as active
+  const getExactNavLinkClass = (path: string) => {
+    const isActive = location.pathname === path;
+    return isActive
+      ? "cursor-pointer font-bold text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-800 px-2 py-2 rounded flex items-center gap-2 group "
+      : "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 px-2 py-2 rounded flex items-center gap-2 group";
+  };
   const handleToggleSidebar = () => {
     setShowMobileSidebar(!showMobileSidebar);
   };
@@ -109,13 +119,49 @@ function Layout({ children }: { children: React.ReactNode }) {
             Overview
           </NavLink>
 
-          <NavLink to="/members" className={getNavLinkClass} end>
-            <Users
-              className="group-hover:motion-safe:animate-bounce"
-              size={15}
-            />
-            Members{" "}
-          </NavLink>
+          <div
+            className={`${
+              isMembersSubMenuOpen ? "bg-gray-100 dark:bg-gray-800" : ""
+            } cursor-pointer px-2 py-2 rounded flex flex-col  gap-2 group`}
+          >
+            <div
+              onClick={() => setIsMembersSubMenuOpen(!isMembersSubMenuOpen)}
+              className="flex items-center gap-2  "
+            >
+              <Users
+                className="group-hover:motion-safe:animate-bounce"
+                size={15}
+              />
+              <p> Members</p>
+
+              <ChevronDown
+                className={`ml-auto self-center transition-transform ${
+                  isMembersSubMenuOpen ? "rotate-180" : ""
+                }`}
+                size={17}
+              />
+            </div>
+
+            {isMembersSubMenuOpen && (
+              <div className="text-sm flex flex-col gap-6 mt-3">
+                <NavLink
+                  className={getExactNavLinkClass("/members")}
+                  to="/members"
+                >
+                  All Members
+                </NavLink>
+                <NavLink
+                  className={`${getExactNavLinkClass(
+                    "/members/follow-up"
+                  )} whitespace-nowrap`}
+                  to="/members/follow-up"
+                >
+                  Follow-Up Members
+                </NavLink>
+              </div>
+            )}
+          </div>
+
           <NavLink to="/admins" className={getNavLinkClass} end>
             <ShieldUser
               className="group-hover:motion-safe:animate-bounce"
@@ -169,7 +215,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             <LayoutDashboard className="group-hover:animate-spin" size={15} />
             Overview
           </NavLink>
-          <NavLink className={getNavLinkClass} to="/members" end>
+          <NavLink className={getNavLinkClass} to="/members/follow-up" end>
             <Users
               className="group-hover:motion-safe:animate-bounce"
               size={15}
