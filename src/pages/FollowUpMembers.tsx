@@ -859,8 +859,7 @@ function FollowUpMembers() {
               {/* set reminder */}
               <div className="flex flex-col gap-2 mb-4">
                 <label className="font-semibold">
-                  Would you like someone to follow up with you and send you a
-                  reminder about MAP? *
+                  Would you like someone to check on you and pray with you?
                 </label>
                 <div className="flex gap-6">
                   <div className="flex items-center gap-2">

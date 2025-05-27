@@ -34,10 +34,7 @@ function Dashboard() {
         .select("*", { count: "exact" });
 
       // Filter for reminder members
-      const reminderMembers =
-        membersResponse.data?.filter(
-          (member) => member.reminder?.toLowerCase() === "yes"
-        ) || [];
+
       // Check for errors
       if (membersResponse.error) {
         toast.error("Unable to fetch members", {
@@ -56,14 +53,13 @@ function Dashboard() {
       // Update state with results
       const membersCount = membersResponse.data?.length || 0;
       const adminsCount = adminsResponse.data?.length || 0;
-      const reminderMembersCount = reminderMembers.length;
 
       setTotalMembers(membersCount);
       setTotalAdmins(adminsCount);
 
       // Calculate members per admin (avoid division by zero)
       if (adminsCount > 0) {
-        setMembersPerAdmin(Math.round(reminderMembersCount / adminsCount));
+        setMembersPerAdmin(Math.round(membersCount / adminsCount));
       } else {
         setMembersPerAdmin(0);
       }

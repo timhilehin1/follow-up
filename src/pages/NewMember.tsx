@@ -518,8 +518,8 @@ export default function NewMember() {
         {/* Reminder */}
         <div className="bg-white p-6 rounded-lg shadow-sm mb-4">
           <label className="block font-medium text-gray-800 mb-4">
-            Would you like someone to follow up with you and send you a reminder
-            about MAP? <span className="text-red-500">*</span>
+            Would you like someone to check on you and pray with you?
+            <span className="text-red-500">*</span>
           </label>
           <div className="flex flex-col gap-2">
             <div className="flex items-center">
