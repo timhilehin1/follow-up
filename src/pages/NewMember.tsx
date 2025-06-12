@@ -19,6 +19,11 @@ export default function NewMember() {
     "December",
   ];
 
+  function isValidEmail(email: string) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   const defaultMemberState = {
@@ -60,6 +65,15 @@ export default function NewMember() {
     ) {
       return;
     }
+
+    // Validate email format
+    if (!isValidEmail(newMember.email)) {
+      toast.error("Please enter a valid email address", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const { data: emailExists } = await supabase
@@ -310,7 +324,7 @@ export default function NewMember() {
               setNewMember({ ...newMember, email: e.target.value })
             }
             required
-            placeholder="Your answer"
+            placeholder="johndoe@gmail.com"
             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
