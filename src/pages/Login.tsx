@@ -76,7 +76,7 @@ function Login() {
                 required
                 type="email"
                 name="email"
-                placeholder="e.g timi@gmail.com"
+                placeholder="e.g johndoe@gmail.com"
                 className="border  rounded-sm p-2 placeholder:text-sm"
                 onChange={handleChange}
               />

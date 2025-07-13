@@ -75,11 +75,12 @@ export default function NewMember() {
     }
 
     setIsSubmitting(true);
+    const normalizedEmail = newMember.email.toLowerCase().trim();
     try {
       const { data: emailExists } = await supabase
         .from("members")
         .select("id")
-        .eq("email", newMember.email)
+        .eq("email", normalizedEmail)
         .limit(1);
 
       if (emailExists && emailExists.length > 0) {
@@ -107,7 +108,7 @@ export default function NewMember() {
       const { error } = await supabase.from("members").insert({
         full_name: newMember.fullName,
         gender: newMember.gender,
-        email: newMember.email,
+        email: normalizedEmail,
         phone: newMember.phone,
         address: newMember.address,
         relationship_status: newMember.relationshipStatus,
@@ -121,12 +122,9 @@ export default function NewMember() {
 
       if (error) {
         console.error("Error adding member:", error);
-        toast.error(
-          error.message || "An error occurred, please try again later",
-          {
-            icon: <MdErrorOutline size={20} color="#FF3B30" />,
-          }
-        );
+        toast.error("An error occurred, please try again later", {
+          icon: <MdErrorOutline size={20} color="#FF3B30" />,
+        });
         return;
       }
 
