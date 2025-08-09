@@ -23,7 +23,6 @@ import { GrNotes } from "react-icons/gr";
 import { toast, Toaster } from "sonner";
 import { MdAddCircleOutline, MdErrorOutline } from "react-icons/md";
 import { Admin } from "../interfaces/Admin";
-
 import { GrPowerCycle } from "react-icons/gr";
 import { GoTrash } from "react-icons/go";
 import AddNoteModal from "../components/modals/AddNoteModal";
