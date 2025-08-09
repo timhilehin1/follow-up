@@ -96,7 +96,7 @@ function ReusableTable<TData>({
                   {row.getVisibleCells().map((cell) => (
                     <td
                       key={cell.id}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300"
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300 capitalize"
                     >
                       {flexRender(
                         cell.column.columnDef.cell,

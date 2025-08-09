@@ -22,13 +22,26 @@ import { IoCallOutline } from "react-icons/io5";
 import { GrNotes } from "react-icons/gr";
 import { toast, Toaster } from "sonner";
 import { MdAddCircleOutline, MdErrorOutline } from "react-icons/md";
-import ReusableModal from "../components/ui/ReusableModal";
 import { Admin } from "../interfaces/Admin";
-import { days, months } from "../utils/constant";
+
+import { GrPowerCycle } from "react-icons/gr";
+import { GoTrash } from "react-icons/go";
+import AddNoteModal from "../components/modals/AddNoteModal";
+import NoteHistoryModal from "../components/modals/NoteHistoryModal";
+import AddMemberModal from "../components/modals/AddMemberModal";
+import ReassignMemberModal from "../components/modals/ReassignMemberModal";
+import DeleteMemberModal from "../components/modals/DeleteMemberModal";
 function FollowUpMembers() {
   const [newNote, setNewNote] = useState("");
   const [open, setOpen] = useState<boolean>(false);
   const [isHistoryModalOpen, setHistoryModal] = useState<boolean>(false);
+  const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
+  const [selectedReassignAdmin, setSelectedReassignAdmin] = useState("");
+  const [reassignPassword, setReassignPassword] = useState("");
+  const [isReassigning, setIsReassigning] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -248,6 +261,127 @@ function FollowUpMembers() {
     }
   }
 
+  async function handleReassignMember(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!selectedMember || !selectedReassignAdmin || !reassignPassword) return;
+
+    // Check password against environment variable
+    const ADMIN_KEY = import.meta.env.VITE_ADMIN_KEY;
+    if (reassignPassword !== ADMIN_KEY) {
+      toast.error("Incorrect password. Reassignment cancelled.", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+      return;
+    }
+
+    setIsReassigning(true);
+
+    try {
+      const { error } = await supabase
+        .from("members")
+        .update({ admin_id: selectedReassignAdmin })
+        .eq("id", selectedMember.id);
+
+      if (error) {
+        toast.error(error.message || "Error reassigning member", {
+          icon: <MdErrorOutline size={20} color="#FF3B30" />,
+        });
+        return;
+      }
+
+      // Refresh members list
+      fetchMembers(pageIndex, pageSize);
+
+      // Reset form and close modal
+      setSelectedReassignAdmin("");
+      setReassignPassword("");
+      setIsReassignModalOpen(false);
+
+      const newAdmin = admins.find(
+        (admin) => admin.id === selectedReassignAdmin
+      );
+
+      toast.success(`Member successfully reassigned to ${newAdmin?.name}!`, {
+        icon: <CiCircleCheck size={20} color="#01BF5B" />,
+      });
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast.error("Unexpected error", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+    } finally {
+      setIsReassigning(false);
+    }
+  }
+
+  async function handleDeleteMember(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!selectedMember || !deletePassword) return;
+
+    // Check password against environment variable
+    const ADMIN_KEY = import.meta.env.VITE_ADMIN_KEY;
+
+    if (deletePassword !== ADMIN_KEY) {
+      toast.error("Incorrect password. Deletion cancelled.", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      // First delete all associated notes
+      const { error: notesError } = await supabase
+        .from("member_notes")
+        .delete()
+        .eq("member_id", selectedMember.id);
+
+      if (notesError) {
+        toast.error("Error deleting member notes", {
+          icon: <MdErrorOutline size={20} color="#FF3B30" />,
+        });
+        return;
+      }
+
+      // Then delete the member
+      const { error: memberError } = await supabase
+        .from("members")
+        .delete()
+        .eq("id", selectedMember.id);
+
+      if (memberError) {
+        toast.error(memberError.message || "Error deleting member", {
+          icon: <MdErrorOutline size={20} color="#FF3B30" />,
+        });
+        return;
+      }
+
+      // Refresh members list
+      fetchMembers(pageIndex, pageSize);
+
+      // Reset form and close modal
+      setDeletePassword("");
+      setIsDeleteModalOpen(false);
+
+      toast.success(
+        `Member ${selectedMember.full_name} deleted successfully!`,
+        {
+          icon: <CiCircleCheck size={20} color="#01BF5B" />,
+        }
+      );
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast.error("Unexpected error", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   const openAddNoteModal = (member: Member) => {
     setSelectedMember(member);
     setOpen(true);
@@ -341,12 +475,24 @@ function FollowUpMembers() {
     }
   }
 
-  const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      setNewNote("");
-    }
-    // console.log(newOpen)
-    setOpen(newOpen);
+  const openAddMemberModal = () => {
+    setIsAddMemberModalOpen(true);
+    // Reset the form fields
+    setNewMember({
+      ...defaultMemberState,
+    });
+    setMonth("");
+    setDay("");
+  };
+
+  const openReassignModal = (member: Member) => {
+    setSelectedMember(member);
+    setIsReassignModalOpen(true);
+  };
+
+  const openDeleteModal = (member: Member) => {
+    setSelectedMember(member);
+    setIsDeleteModalOpen(true);
   };
 
   const columns: ColumnDef<Member>[] = [
@@ -395,27 +541,43 @@ function FollowUpMembers() {
               <CiMenuKebab className="cursor-pointer" size={24} />
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent className="  bg-white text-[#44444B]  dark:bg-[#242529] dark:text-white p-0 min-h-[5rem] space-y-2">
+            <DropdownMenuContent className=" text-base bg-white text-[#44444B]  dark:bg-[#242529] dark:text-white p-2 min-h-[5rem] space-y-2">
               <DropdownMenuItem
-                className="cursor-pointer flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className=" text-base cursor-pointer  flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onSelect={() => openAddNoteModal(member)}
               >
-                <MdAddCircleOutline />
+                <MdAddCircleOutline size={16} />
                 Add note
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="text-base cursor-pointer flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onSelect={() => openNotesHistory(member)}
               >
                 <GrNotes />
                 View notes
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="text-base cursor-pointer flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
                 onSelect={() => (window.location.href = `tel:${member.phone}`)}
               >
                 <IoCallOutline />
                 Call member
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onSelect={() => openReassignModal(member)}
+                className="text-base cursor-pointer flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <GrPowerCycle />
+                Reassign member
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onSelect={() => openDeleteModal(member)}
+                className="text-base cursor-pointer flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <GoTrash />
+                Delete member
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -423,16 +585,6 @@ function FollowUpMembers() {
       },
     },
   ];
-
-  const openAddMemberModal = () => {
-    setIsAddMemberModalOpen(true);
-    // Reset the form fields
-    setNewMember({
-      ...defaultMemberState,
-    });
-    setMonth("");
-    setDay("");
-  };
 
   return (
     <Layout>
@@ -452,7 +604,6 @@ function FollowUpMembers() {
             {/* Bulk add members */}
           </button>
         </div>
-
         <section className="table_section">
           <header className="flex flex-col gap-4 md:flex-row items-start md:items-center justify-between mb-6">
             <input
@@ -505,435 +656,62 @@ function FollowUpMembers() {
             </div>
           )}
         </section>
-        {open && (
-          <ReusableModal
-            open={open}
-            onOpenChange={handleOpenChange}
-            title="Add Note"
-            description="You can add information about the member's wellbeing here. Click
-                save when you're done."
-          >
-            <form onSubmit={addNewNote}>
-              <div className="flex flex-col gap-2 mb-6">
-                <label className="font-semibold" htmlFor="note">
-                  Admin
-                </label>
+        <AddNoteModal
+          open={open}
+          onOpenChange={setOpen}
+          member={selectedMember}
+          admins={admins}
+          newNote={newNote}
+          setNewNote={setNewNote}
+          selectedNoteAdmin={selectedNoteAdmin}
+          setSelectedNoteAdmin={setSelectedNoteAdmin}
+          onSubmit={addNewNote}
+          addingNote={addingNote}
+        />
+        {/* // For Notes History Modal: */}
+        <NoteHistoryModal
+          open={isHistoryModalOpen}
+          onOpenChange={setHistoryModal}
+          member={selectedMember}
+          notesHistory={notesHistory}
+          fetchingNotes={fetchingNotes}
+        />
+        {/* // For Add Member Modal: */}
+        <AddMemberModal
+          open={isAddMemberModalOpen}
+          onOpenChange={setIsAddMemberModalOpen}
+          newMember={newMember}
+          setNewMember={setNewMember}
+          day={day}
+          setDay={setDay}
+          month={month}
+          setMonth={setMonth}
+          onSubmit={handleAddMember}
+          isAddingMember={isAddingMember}
+        />
 
-                <div className="flex flex-col">
-                  <select
-                    id="note-admin"
-                    className="border p-2 rounded-sm  cursor-pointer bg-white dark:bg-[#242529] text-[#44444B] dark:text-white    appearance-none"
-                    required
-                    value={selectedNoteAdmin}
-                    onChange={(e) => setSelectedNoteAdmin(e.target.value)}
-                  >
-                    <option value="">Select Admin</option>
-                    {admins.length > 0 &&
-                      admins.map((admin: Admin) => (
-                        <option key={admin.id} value={admin.id}>
-                          {admin.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              </div>
+        <ReassignMemberModal
+          open={isReassignModalOpen}
+          onOpenChange={setIsReassignModalOpen}
+          member={selectedMember}
+          admins={admins}
+          selectedAdmin={selectedReassignAdmin}
+          setSelectedAdmin={setSelectedReassignAdmin}
+          password={reassignPassword}
+          setPassword={setReassignPassword}
+          onSubmit={handleReassignMember}
+          isReassigning={isReassigning}
+        />
 
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold" htmlFor="note">
-                  Note
-                </label>
-                <textarea
-                  id="note"
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  required
-                  placeholder="Kindly type your note here"
-                  className="focus:border-[#0053A6] focus:ring-[#0053A6] outline-0 h-40 px-4 py-2 border rounded-md border-[#ECF0F3]  placeholder-[#BBBBCB] w-full"
-                ></textarea>
-              </div>
-              <button
-                type="submit"
-                disabled={!newNote || !selectedNoteAdmin}
-                className="flex disabled:opacity-40 justify-center  px-4 py-2 bg-[#0053A6] text-white items-center gap-2 cursor-pointer rounded-md w-full"
-              >
-                {addingNote ? (
-                  <FiLoader className="w-6 h-6 text-white animate-spin" />
-                ) : (
-                  "Save"
-                )}
-              </button>
-            </form>
-          </ReusableModal>
-        )}
-
-        {/* member notes */}
-        {isHistoryModalOpen && (
-          <ReusableModal
-            open={isHistoryModalOpen}
-            onOpenChange={setHistoryModal}
-            title={`Notes History - ${selectedMember?.full_name}`}
-            description="You can view this member's wellbeing status here."
-          >
-            <div className="space-y-4 w-auto">
-              {fetchingNotes ? (
-                <div className="flex justify-center py-8">
-                  <FiLoader className="w-6 h-6 animate-spin" />
-                </div>
-              ) : notesHistory.length === 0 ? (
-                <div className="text-center py-8">
-                  No notes found for this member.
-                </div>
-              ) : (
-                <div className="w-auto divide-y divide-[#ECF0F3]">
-                  {notesHistory.map((note, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center  gap-4 mb-6 py-3"
-                    >
-                      <GrNotes className="shrink-0 self-start" size={18} />
-                      <div className="flex-1 min-w-0">
-                        <p className="break-words whitespace-pre-wrap mb-1 leading-tight">
-                          {note.note}
-                        </p>
-                        <p className="font-semibold text-sm">
-                          Note added by{" "}
-                          {note.admin_name ? note.admin_name : "admin"} {""}
-                          <br />
-                          {new Date(note.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </ReusableModal>
-        )}
-
-        {isAddMemberModalOpen && (
-          <ReusableModal
-            open={isAddMemberModalOpen}
-            onOpenChange={setIsAddMemberModalOpen}
-            title="Add New Member"
-            description="Fill in the member's details below. Required fields are marked with *"
-          >
-            <form onSubmit={handleAddMember} className="">
-              {/* Full Name */}
-              <div className="flex flex-col gap-4 mb-4">
-                <label className="font-semibold" htmlFor="fullName">
-                  Full Name *
-                </label>
-                <input
-                  id="fullName"
-                  value={newMember.fullName}
-                  onChange={(e) =>
-                    setNewMember({ ...newMember, fullName: e.target.value })
-                  }
-                  required
-                  placeholder="Enter full name"
-                  className="focus:border-[#0053A6] focus:ring-[#0053A6] outline-0 px-4 py-2 border rounded-md border-[#ECF0F3] placeholder-[#BBBBCB] w-full"
-                />
-              </div>
-
-              {/* Gender */}
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold" htmlFor="gender">
-                  Gender *
-                </label>
-                <select
-                  id="gender"
-                  value={newMember.gender}
-                  onChange={(e) =>
-                    setNewMember({ ...newMember, gender: e.target.value })
-                  }
-                  required
-                  className="border p-2 rounded-sm ring-0 cursor-pointer bg-white dark:bg-[#242529] text-[#44444B] dark:text-white appearance-none"
-                >
-                  <option value="">Select Gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
-              </div>
-
-              {/* Birthday */}
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold" htmlFor="birthday">
-                  Birthday *{" "}
-                  <span className="text-sm font-normal text-gray-500">
-                    (Will be saved as MM/DD format)
-                  </span>
-                </label>
-                <div className="flex gap-2">
-                  <select
-                    id="birthday-month"
-                    value={month}
-                    required
-                    onChange={(e) => setMonth(e.target.value)}
-                    className="border p-2 rounded-sm flex-1 cursor-pointer bg-white dark:bg-[#242529] text-[#44444B] dark:text-white appearance-none focus:border-[#0053A6] focus:ring-[#0053A6] outline-0"
-                  >
-                    <option value="">Select month</option>
-                    {months.map((m, i) => (
-                      <option key={i} value={i + 1}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-
-                  <select
-                    required
-                    id="birthday-day"
-                    value={day}
-                    onChange={(e) => setDay(e.target.value)}
-                    className="border p-2 rounded-sm flex-1 cursor-pointer bg-white dark:bg-[#242529] text-[#44444B] dark:text-white appearance-none focus:border-[#0053A6] focus:ring-[#0053A6] outline-0"
-                  >
-                    <option value="">Select day</option>
-                    {days.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold" htmlFor="email">
-                  Email *
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={newMember.email}
-                  onChange={(e) =>
-                    setNewMember({ ...newMember, email: e.target.value })
-                  }
-                  required
-                  placeholder="Enter email address"
-                  className="focus:border-[#0053A6] focus:ring-[#0053A6] outline-0 px-4 py-2 border rounded-md border-[#ECF0F3] placeholder-[#BBBBCB] w-full"
-                />
-              </div>
-
-              {/* Home Address */}
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold" htmlFor="address">
-                  Home Address *
-                </label>
-                <textarea
-                  required
-                  id="address"
-                  value={newMember.address}
-                  onChange={(e) =>
-                    setNewMember({ ...newMember, address: e.target.value })
-                  }
-                  placeholder="Enter home address"
-                  className="focus:border-[#0053A6] focus:ring-[#0053A6] outline-0 px-4 py-2 h-20 border rounded-md border-[#ECF0F3] placeholder-[#BBBBCB] w-full"
-                />
-              </div>
-
-              {/* Relationship Status */}
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold" htmlFor="relationshipStatus">
-                  Relationship Status *
-                </label>
-                <select
-                  required
-                  id="relationshipStatus"
-                  value={newMember.relationshipStatus}
-                  onChange={(e) =>
-                    setNewMember({
-                      ...newMember,
-                      relationshipStatus: e.target.value,
-                    })
-                  }
-                  className="border p-2 rounded-sm ring-0 cursor-pointer bg-white dark:bg-[#242529] text-[#44444B] dark:text-white appearance-none"
-                >
-                  <option value="">Select Status</option>
-                  <option value="single">Single</option>
-                  <option value="dating">Dating</option>
-                  <option value="married">Married</option>
-                </select>
-              </div>
-
-              {/* Phone Number */}
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold" htmlFor="phone">
-                  Phone Number *
-                </label>
-                <input
-                  id="phone"
-                  type="tel"
-                  value={newMember.phone}
-                  onChange={(e) =>
-                    setNewMember({ ...newMember, phone: e.target.value })
-                  }
-                  required
-                  placeholder="Enter phone number"
-                  className="focus:border-[#0053A6] focus:ring-[#0053A6] outline-0 px-4 py-2 border rounded-md border-[#ECF0F3] placeholder-[#BBBBCB] w-full"
-                />
-              </div>
-
-              {/* Occupation */}
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold" htmlFor="occupation">
-                  Occupation *
-                </label>
-                <input
-                  required
-                  id="occupation"
-                  value={newMember.occupation}
-                  onChange={(e) =>
-                    setNewMember({ ...newMember, occupation: e.target.value })
-                  }
-                  placeholder="Enter occupation"
-                  className="focus:border-[#0053A6] focus:ring-[#0053A6] outline-0 px-4 py-2 border rounded-md border-[#ECF0F3] placeholder-[#BBBBCB] w-full"
-                />
-              </div>
-
-              {/* //are you in a service unit */}
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold">
-                  Are you in a service unit? *
-                </label>
-                <div className="flex gap-6">
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="inServiceYes"
-                      type="radio"
-                      name="inService"
-                      value="yes"
-                      checked={newMember.serviceUnitStatus === "yes"}
-                      onChange={() =>
-                        setNewMember({ ...newMember, serviceUnitStatus: "yes" })
-                      }
-                      className="focus:ring-[#0053A6] h-4 w-4 text-[#0053A6] border-gray-300"
-                    />
-                    <label
-                      htmlFor="inServiceYes"
-                      className="text-[#44444B] dark:text-white"
-                    >
-                      Yes
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="inServiceNo"
-                      type="radio"
-                      name="inService"
-                      value="no"
-                      checked={newMember.serviceUnitStatus === "no"}
-                      onChange={() =>
-                        setNewMember({ ...newMember, serviceUnitStatus: "no" })
-                      }
-                      className="focus:ring-[#0053A6] h-4 w-4 text-[#0053A6] border-gray-300"
-                    />
-                    <label
-                      htmlFor="inServiceNo"
-                      className="text-[#44444B] dark:text-white"
-                    >
-                      No
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* //unit name */}
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold" htmlFor="serviceUnit">
-                  If yes, what is the name of your service unit
-                </label>
-                <input
-                  id="serviceUnit"
-                  value={newMember.serviceUnitName}
-                  onChange={(e) =>
-                    setNewMember({
-                      ...newMember,
-                      serviceUnitName: e.target.value,
-                    })
-                  }
-                  placeholder="Ambience"
-                  className="focus:border-[#0053A6] focus:ring-[#0053A6] outline-0 px-4 py-2 border rounded-md border-[#ECF0F3] placeholder-[#BBBBCB] w-full"
-                />
-              </div>
-
-              {/* set reminder */}
-              <div className="flex flex-col gap-2 mb-4">
-                <label className="font-semibold">
-                  Would you like someone to check on you and pray with you?
-                </label>
-                <div className="flex gap-6">
-                  <div className="flex items-center gap-2">
-                    <input
-                      required
-                      id="reminderYes"
-                      type="radio"
-                      name="reminder"
-                      value="yes"
-                      checked={newMember.reminder === "yes"}
-                      onChange={() =>
-                        setNewMember({ ...newMember, reminder: "yes" })
-                      }
-                      className="focus:ring-[#0053A6] h-4 w-4 text-[#0053A6] border-gray-300"
-                    />
-                    <label
-                      htmlFor="reminderYes"
-                      className="text-[#44444B] dark:text-white"
-                    >
-                      Yes
-                    </label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      id="reminderNo"
-                      type="radio"
-                      name="reminder"
-                      value="no"
-                      checked={newMember.reminder === "no"}
-                      onChange={() =>
-                        setNewMember({ ...newMember, reminder: "no" })
-                      }
-                      className="focus:ring-[#0053A6] h-4 w-4 text-[#0053A6] border-gray-300"
-                    />
-                    <label
-                      htmlFor="reminderNo"
-                      className="text-[#44444B] dark:text-white"
-                    >
-                      No
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Suggestions */}
-              <div className="flex flex-col gap-2 mb-6">
-                <label className="font-semibold" htmlFor="suggestions">
-                  Do you have any suggestions for MAP? (Your opinions are valid
-                  and matter to us.)
-                </label>
-                <textarea
-                  id="suggestions"
-                  value={newMember.suggestions}
-                  onChange={(e) =>
-                    setNewMember({ ...newMember, suggestions: e.target.value })
-                  }
-                  placeholder="Any additional information or suggestions"
-                  className="focus:border-[#0053A6] focus:ring-[#0053A6] outline-0 h-20 px-4 py-2 border rounded-md border-[#ECF0F3] placeholder-[#BBBBCB] w-full"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="flex disabled:opacity-40 justify-center px-4 py-2 bg-[#0053A6] text-white items-center gap-2 cursor-pointer rounded-md w-full"
-              >
-                {isAddingMember ? (
-                  <FiLoader className="w-6 h-6 text-white animate-spin" />
-                ) : (
-                  "Add Member"
-                )}
-              </button>
-            </form>
-          </ReusableModal>
-        )}
+        <DeleteMemberModal
+          open={isDeleteModalOpen}
+          onOpenChange={setIsDeleteModalOpen}
+          member={selectedMember}
+          password={deletePassword}
+          setPassword={setDeletePassword}
+          onSubmit={handleDeleteMember}
+          isDeleting={isDeleting}
+        />
       </section>
     </Layout>
   );
