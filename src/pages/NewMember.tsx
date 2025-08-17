@@ -77,32 +77,32 @@ export default function NewMember() {
     setIsSubmitting(true);
     const normalizedEmail = newMember.email.toLowerCase().trim();
     try {
-      const { data: emailExists } = await supabase
-        .from("members")
-        .select("id")
-        .eq("email", normalizedEmail)
-        .limit(1);
+      //   const { data: emailExists } = await supabase
+      //     .from("members")
+      //     .select("id")
+      //     .eq("email", normalizedEmail)
+      //     .limit(1);
 
-      if (emailExists && emailExists.length > 0) {
-        toast.error("A member with this email already exists", {
-          icon: <MdErrorOutline size={20} color="#FF3B30" />,
-        });
-        return;
-      }
+      //   if (emailExists && emailExists.length > 0) {
+      //     toast.error("A member with this email already exists", {
+      //       icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      //     });
+      //     return;
+      //   }
 
       // Check if phone already exists in the database
-      const { data: phoneExists } = await supabase
-        .from("members")
-        .select("id")
-        .eq("phone", newMember.phone)
-        .limit(1);
+      // const { data: phoneExists } = await supabase
+      //   .from("members")
+      //   .select("id")
+      //   .eq("phone", newMember.phone)
+      //   .limit(1);
 
-      if (phoneExists && phoneExists.length > 0) {
-        toast.error("A member with this phone number already exists", {
-          icon: <MdErrorOutline size={20} color="#FF3B30" />,
-        });
-        return;
-      }
+      // if (phoneExists && phoneExists.length > 0) {
+      //   toast.error("A member with this phone number already exists", {
+      //     icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      //   });
+      //   return;
+      // }
 
       // Map newMember object to match database schema field names
       const { error } = await supabase.from("members").insert({
@@ -122,9 +122,35 @@ export default function NewMember() {
 
       if (error) {
         console.error("Error adding member:", error);
-        toast.error("An error occurred, please try again later", {
-          icon: <MdErrorOutline size={20} color="#FF3B30" />,
-        });
+
+        if (error.code === "23505") {
+          if (error.message.includes("email")) {
+            toast.error(
+              "This email is already registered. Please use a different email address.",
+              {
+                icon: <MdErrorOutline size={20} color="#FF3B30" />,
+              }
+            );
+          } else if (error.message.includes("phone")) {
+            toast.error(
+              "This phone number is already registered. Please use a different number.",
+              {
+                icon: <MdErrorOutline size={20} color="#FF3B30" />,
+              }
+            );
+          } else {
+            toast.error(
+              "Some of your information is already registered. Please check your details.",
+              {
+                icon: <MdErrorOutline size={20} color="#FF3B30" />,
+              }
+            );
+          }
+        } else {
+          toast.error("Something went wrong. Please try again in a moment.", {
+            icon: <MdErrorOutline size={20} color="#FF3B30" />,
+          });
+        }
         return;
       }
 
