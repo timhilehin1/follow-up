@@ -169,6 +169,10 @@ function Layout({ children }: { children: React.ReactNode }) {
             />
             Admins{" "}
           </NavLink>
+          <NavLink to="/evangelism" className={getNavLinkClass} end>
+            <Handshake className="group-hover:animate-bounce" size={15} />
+            Evangelism{" "}
+          </NavLink>
           <NavLink to="/comms" className={getNavLinkClass} end>
             <Handshake className="group-hover:animate-bounce" size={15} />
             Communications{" "}
@@ -232,6 +236,10 @@ function Layout({ children }: { children: React.ReactNode }) {
           <NavLink className={getNavLinkClass} to="/comms" end>
             <Handshake className="group-hover:animate-bounce" size={15} />
             Communications
+          </NavLink>
+          <NavLink className={getNavLinkClass} to="/evangelism" end>
+            <Handshake className="group-hover:animate-bounce" size={15} />
+            Evangelism
           </NavLink>
         </ul>
       </section>
