@@ -1,7 +1,7 @@
 import Layout from "../components/layout/Layout";
 import { IoPersonAddOutline } from "react-icons/io5";
 import ReusableTable from "../components/ui/ReusableTable";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, RowSelectionState } from "@tanstack/react-table";
 import {
   defaultMemberState,
   Member,
@@ -30,7 +30,13 @@ import NoteHistoryModal from "../components/modals/NoteHistoryModal";
 import AddMemberModal from "../components/modals/AddMemberModal";
 import ReassignMemberModal from "../components/modals/ReassignMemberModal";
 import DeleteMemberModal from "../components/modals/DeleteMemberModal";
+import BulkReassignMemberModal from "../components/modals/BulkReassignMemberModal";
+import BulkDeleteMemberModal from "../components/modals/BulkDeleteMemberModal";
 function FollowUpMembers() {
+  const [selectedMembers, setSelectedMembers] = useState<Member[]>([]);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [isBulkReassignModalOpen, setIsBulkReassignModalOpen] = useState(false);
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
   const [newNote, setNewNote] = useState("");
   const [open, setOpen] = useState<boolean>(false);
   const [isHistoryModalOpen, setHistoryModal] = useState<boolean>(false);
@@ -41,6 +47,12 @@ function FollowUpMembers() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [bulkReassignPassword, setBulkReassignPassword] = useState("");
+  const [bulkDeletePassword, setBulkDeletePassword] = useState("");
+  const [selectedBulkReassignAdmin, setSelectedBulkReassignAdmin] =
+    useState("");
+  const [isBulkReassigning, setIsBulkReassigning] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -381,6 +393,147 @@ function FollowUpMembers() {
     }
   }
 
+  async function handleBulkReassignMembers(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (
+      selectedMembers.length === 0 ||
+      !selectedBulkReassignAdmin ||
+      !bulkReassignPassword
+    ) {
+      toast.error("Please fill in all required fields", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+      return;
+    }
+
+    const ADMIN_KEY = import.meta.env.VITE_ADMIN_KEY;
+    if (bulkReassignPassword !== ADMIN_KEY) {
+      toast.error("Incorrect password. Reassignment cancelled.", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+      return;
+    }
+
+    setIsBulkReassigning(true);
+
+    try {
+      const memberIds = selectedMembers.map((member) => member.id);
+
+      const { error } = await supabase
+        .from("members")
+        .update({ admin_id: selectedBulkReassignAdmin })
+        .in("id", memberIds);
+
+      if (error) {
+        toast.error(error.message || "Error reassigning members", {
+          icon: <MdErrorOutline size={20} color="#FF3B30" />,
+        });
+        return;
+      }
+
+      // Refresh and reset
+      fetchMembers(pageIndex, pageSize);
+      setSelectedBulkReassignAdmin("");
+      setBulkReassignPassword("");
+      setIsBulkReassignModalOpen(false);
+      setRowSelection({});
+      setSelectedMembers([]);
+
+      const newAdmin = admins.find(
+        (admin) => admin.id === selectedBulkReassignAdmin
+      );
+      toast.success(
+        `${selectedMembers.length} member${
+          selectedMembers.length !== 1 ? "s" : ""
+        } successfully reassigned to ${newAdmin?.name}!`,
+        {
+          icon: <CiCircleCheck size={20} color="#01BF5B" />,
+        }
+      );
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast.error("Unexpected error", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+    } finally {
+      setIsBulkReassigning(false);
+    }
+  }
+  async function handleBulkDeleteMembers(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (selectedMembers.length === 0 || !bulkDeletePassword) {
+      toast.error("Please enter password", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+      return;
+    }
+
+    const ADMIN_KEY = import.meta.env.VITE_ADMIN_KEY;
+    if (bulkDeletePassword !== ADMIN_KEY) {
+      toast.error("Incorrect password. Deletion cancelled.", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+      return;
+    }
+
+    setIsBulkDeleting(true);
+
+    try {
+      const memberIds = selectedMembers.map((member) => member.id);
+
+      // Delete notes first
+      const { error: notesError } = await supabase
+        .from("member_notes")
+        .delete()
+        .in("member_id", memberIds);
+
+      if (notesError) {
+        toast.error("Error deleting member notes", {
+          icon: <MdErrorOutline size={20} color="#FF3B30" />,
+        });
+        return;
+      }
+
+      // Delete members
+      const { error: membersError } = await supabase
+        .from("members")
+        .delete()
+        .in("id", memberIds);
+
+      if (membersError) {
+        toast.error(membersError.message || "Error deleting members", {
+          icon: <MdErrorOutline size={20} color="#FF3B30" />,
+        });
+        return;
+      }
+
+      // Refresh and reset
+      fetchMembers(pageIndex, pageSize);
+      setBulkDeletePassword("");
+      setIsBulkDeleteModalOpen(false);
+      setRowSelection({});
+      setSelectedMembers([]);
+
+      toast.success(
+        `${selectedMembers.length} member${
+          selectedMembers.length !== 1 ? "s" : ""
+        } deleted successfully!`,
+        {
+          icon: <CiCircleCheck size={20} color="#01BF5B" />,
+        }
+      );
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast.error("Unexpected error", {
+        icon: <MdErrorOutline size={20} color="#FF3B30" />,
+      });
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  }
+
   const openAddNoteModal = (member: Member) => {
     setSelectedMember(member);
     setOpen(true);
@@ -513,6 +666,50 @@ function FollowUpMembers() {
         );
       },
     },
+    // Enhanced admin column with color-coded badges
+    {
+      id: "admin_name",
+      header: "Admin",
+      cell: ({ row }) => {
+        const member = row.original;
+        const admin = admins.find((admin) => admin.id === member.admin_id);
+        const adminName = admin?.name || "Unknown";
+
+        // Generate consistent color based on admin ID
+        const getAdminColor = (adminId: string) => {
+          const colors = [
+            "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200",
+            "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200",
+            "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200",
+            "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200",
+            "bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200",
+            "bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200",
+          ];
+
+          // Simple hash function for consistent color assignment
+          let hash = 0;
+          for (let i = 0; i < adminId.length; i++) {
+            hash = adminId.charCodeAt(i) + ((hash << 5) - hash);
+          }
+          return colors[Math.abs(hash) % colors.length];
+        };
+
+        const colorClass = admin
+          ? getAdminColor(member.admin_id!)
+          : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200";
+
+        return (
+          <div className="text-sm">
+            <span
+              className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
+            >
+              {adminName}
+            </span>
+          </div>
+        );
+      },
+    },
+
     {
       accessorKey: "note",
       header: () => <span className="hidden md:table-cell">Last note</span>,
@@ -643,6 +840,34 @@ function FollowUpMembers() {
             </div>
           ) : (
             <div className="table_section">
+              {/* Bulk Action Buttons - Show only when members are selected */}
+              {selectedMembers.length > 0 && (
+                <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => setIsBulkReassignModalOpen(true)}
+                      className="px-4 py-2 bg-[#0053A6] text-white rounded-lg  transition-colors cursor-pointer"
+                    >
+                      Bulk Reassign ({selectedMembers.length})
+                    </button>
+                    <button
+                      onClick={() => setIsBulkDeleteModalOpen(true)}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
+                    >
+                      Bulk Delete ({selectedMembers.length})
+                    </button>
+                    <button
+                      onClick={() => {
+                        setRowSelection({});
+                        setSelectedMembers([]);
+                      }}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors cursor-pointer"
+                    >
+                      Clear Selection
+                    </button>
+                  </div>
+                </div>
+              )}
               <ReusableTable
                 data={members}
                 columns={columns}
@@ -651,6 +876,10 @@ function FollowUpMembers() {
                 pageSize={pageSize}
                 totalRows={totalRows}
                 onPaginationChange={handlePaginationChange}
+                enableRowSelection={true}
+                onRowSelectionChange={setSelectedMembers}
+                rowSelectionState={rowSelection}
+                onRowSelectionStateChange={setRowSelection}
               />
             </div>
           )}
@@ -710,6 +939,30 @@ function FollowUpMembers() {
           setPassword={setDeletePassword}
           onSubmit={handleDeleteMember}
           isDeleting={isDeleting}
+        />
+
+        {/* NEW: Bulk Action Modals */}
+        <BulkReassignMemberModal
+          open={isBulkReassignModalOpen}
+          onOpenChange={setIsBulkReassignModalOpen}
+          selectedMembers={selectedMembers}
+          admins={admins}
+          selectedAdmin={selectedBulkReassignAdmin}
+          setSelectedAdmin={setSelectedBulkReassignAdmin}
+          password={bulkReassignPassword}
+          setPassword={setBulkReassignPassword}
+          onSubmit={handleBulkReassignMembers}
+          isReassigning={isBulkReassigning}
+        />
+
+        <BulkDeleteMemberModal
+          open={isBulkDeleteModalOpen}
+          onOpenChange={setIsBulkDeleteModalOpen}
+          selectedMembers={selectedMembers}
+          password={bulkDeletePassword}
+          setPassword={setBulkDeletePassword}
+          onSubmit={handleBulkDeleteMembers}
+          isDeleting={isBulkDeleting}
         />
       </section>
     </Layout>

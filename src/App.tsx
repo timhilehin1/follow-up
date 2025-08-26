@@ -7,6 +7,7 @@ import MemberManagement from "./pages/MemberManagement";
 import AdminManagement from "./pages/AdminManagement";
 import NewMember from "./pages/NewMember";
 import FollowUpMembers from "./pages/FollowUpMembers";
+import Evangelism from "./pages/Evangelism";
 
 function App() {
   return (
@@ -53,6 +54,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/evangelism"
+            element={
+              <ProtectedRoute>
+                <Evangelism />
               </ProtectedRoute>
             }
           />
