@@ -70,21 +70,6 @@ export default function ReassignMemberModal({
           label="Password"
         />
 
-        {/* <div className="flex flex-col gap-2 mb-6">
-          <label className="font-semibold" htmlFor="password">
-            Password *
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Enter password to confirm reassignment"
-            className="focus:border-[#0053A6] focus:ring-[#0053A6] outline-0 px-4 py-2 border rounded-md border-[#ECF0F3] placeholder-[#BBBBCB] w-full"
-          />
-        </div> */}
-
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 mb-6">
           <div className="flex items-center gap-2">
             <MdErrorOutline
