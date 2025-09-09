@@ -6,4 +6,5 @@ export interface Admin {
   active?: boolean | null; // default is true if not provided
   created_at?: string | null; // ISO timestamp string
   updated_at?: string | null; // ISO timestamp string
+  membersCount?: number;
 }
