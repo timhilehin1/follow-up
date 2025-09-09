@@ -656,6 +656,7 @@ function FollowUpMembers() {
       accessorKey: "phone",
       header: "Phone",
     },
+
     {
       accessorKey: "created_at",
       header: () => <span className="hidden md:table-cell">Date Joined</span>,
