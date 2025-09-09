@@ -27,7 +27,7 @@ function AdminManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  const [totalRows, setTotalRows] = useState(0);
+  const [totalRows, _] = useState(0);
   const [isAddAdminModalOpen, setIsAddAdminModalOpen] = useState(false);
   const [isEditAdminModalOpen, setIsEditAdminModalOpen] = useState(false);
   const [isDeleteAdminModalOpen, setIsDeleteAdminModalOpen] = useState(false);
