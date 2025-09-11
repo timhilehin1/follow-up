@@ -11,10 +11,12 @@ interface PasswordInputProps {
   required?: boolean;
   label?: string;
   variant?: "default" | "danger";
+  name?: string;
 }
 
 export default function PasswordInput({
   id,
+  name,
   value,
   onChange,
   placeholder = "Enter password",
@@ -37,13 +39,14 @@ export default function PasswordInput({
   return (
     <div className="flex flex-col gap-2 mb-6">
       {label && (
-        <label className="font-semibold" htmlFor={id}>
-          {label} {required && "*"}
+        <label className="" htmlFor={id}>
+          {label}
         </label>
       )}
       <div className="relative">
         <input
           id={id}
+          name={name}
           type={showPassword ? "text" : "password"}
           value={value}
           onChange={onChange}
