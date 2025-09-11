@@ -5,6 +5,7 @@ import { toast, Toaster } from "sonner";
 import { MdErrorOutline } from "react-icons/md";
 import { CiCircleCheck } from "react-icons/ci";
 import { useNavigate } from "react-router-dom";
+import PasswordInput from "../components/ui/PassswordInput";
 
 function Login() {
   const navigate = useNavigate();
@@ -47,6 +48,12 @@ function Login() {
       setLoading(false);
     }
   };
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prev) => ({
+      ...prev,
+      password: e.target.value,
+    }));
+  };
 
   return (
     <div className="bg-[#EBF4FF] p-4">
@@ -77,22 +84,21 @@ function Login() {
                 type="email"
                 name="email"
                 placeholder="e.g johndoe@gmail.com"
-                className="border  rounded-sm p-2 placeholder:text-sm"
+                className="border border-gray-300 focus:border-[#0053A6]  rounded-sm p-2 placeholder:text-sm outline-none"
                 onChange={handleChange}
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label>Password</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="password"
-                className="border  rounded-sm p-2 placeholder:text-sm"
-                onChange={handleChange}
-                required
-              />
-            </div>
+            <PasswordInput
+              id="login-password"
+              name="password"
+              value={formData.password}
+              onChange={handlePasswordChange}
+              placeholder="password"
+              required
+              label="Password"
+              // variant="danger"
+            />
 
             <button
               disabled={!formData.email || !formData.password}
