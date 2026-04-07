@@ -6,6 +6,7 @@ import ProtectedRoute from "./pages/ProtectedRoute";
 import MemberManagement from "./pages/MemberManagement";
 import AdminManagement from "./pages/AdminManagement";
 import NewMember from "./pages/NewMember";
+import UpdateDetails from "./pages/UpdateDetails";
 import FollowUpMembers from "./pages/FollowUpMembers";
 import Evangelism from "./pages/Evangelism";
 
@@ -66,6 +67,7 @@ function App() {
             }
           />
           <Route path="/new" element={<NewMember />} />
+          <Route path="/update-details" element={<UpdateDetails />} />
           <Route path="*" element={<Navigate to="/overview" />} />
         </Routes>
       </AuthProvider>
