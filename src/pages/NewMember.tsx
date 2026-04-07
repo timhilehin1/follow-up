@@ -41,6 +41,7 @@ export default function NewMember() {
     reminder: "",
     suggestions: "",
     birthday: "",
+    emergencyContact: "",
   };
 
   const [newMember, setNewMember] = useState(defaultMemberState);
@@ -61,7 +62,8 @@ export default function NewMember() {
       !newMember.occupation ||
       !newMember.serviceUnitStatus ||
       !newMember.reminder ||
-      !newMember.birthday
+      !newMember.birthday ||
+      !newMember.emergencyContact
     ) {
       return;
     }
@@ -118,6 +120,7 @@ export default function NewMember() {
         birthday: newMember.birthday,
         reminder: newMember.reminder,
         suggestions: newMember.suggestions || null,
+        emergency_contact: newMember.emergencyContact,
       });
 
       if (error) {
@@ -613,6 +616,30 @@ export default function NewMember() {
             }
             placeholder="Your answer"
             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 h-24"
+          />
+        </div>
+
+        {/* Emergency Contact */}
+        <div className="bg-white p-6 rounded-lg shadow-sm mb-4">
+          <label
+            className="block font-medium text-gray-800 mb-2"
+            htmlFor="emergencyContact"
+          >
+            Emergency Contact <span className="text-red-500">*</span>
+            <span className="block text-sm font-normal text-gray-500 mt-1">
+              A person we can reach if you are not available
+            </span>
+          </label>
+          <input
+            id="emergencyContact"
+            type="tel"
+            value={newMember.emergencyContact}
+            onChange={(e) =>
+              setNewMember({ ...newMember, emergencyContact: e.target.value })
+            }
+            required
+            placeholder="Name and phone number"
+            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
