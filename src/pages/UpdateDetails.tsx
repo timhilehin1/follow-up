@@ -35,15 +35,17 @@ export default function UpdateDetails() {
     const normalizedEmail = form.email.toLowerCase().trim();
 
     try {
-      const { data: existing, error: fetchError } = await supabase
-        .from("members")
-        .select("id")
-        .eq("email", normalizedEmail)
-        .limit(1);
+           const { data: found, error: updateError } = await supabase.rpc(
+        "update_emergency_contact",
+        {
+          member_email: normalizedEmail,
+          new_contact: form.emergencyContact,
+        }
+      );
 
-      if (fetchError) throw fetchError;
+      if (updateError) throw updateError;
 
-      if (!existing || existing.length === 0) {
+   if (!found) {
         toast.error(
           "We couldn't find your email in our records. Please fill in the full registration form.",
           { icon: <MdErrorOutline size={20} color="#FF3B30" /> }
@@ -51,13 +53,6 @@ export default function UpdateDetails() {
         setTimeout(() => navigate("/new"), 3000);
         return;
       }
-
-      const { error: updateError } = await supabase
-        .from("members")
-        .update({ emergency_contact: form.emergencyContact })
-        .eq("email", normalizedEmail);
-
-      if (updateError) throw updateError;
 
       setIsSubmitted(true);
     } catch (err) {
